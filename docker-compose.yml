@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: driving-exam-backend
+    environment:
+      FLASK_ENV: production
+      DATABASE_URL: sqlite:////app/instance/driving_exam.db
+    ports:
+      - "5000:5000"
+    volumes:
+      - backend-data:/app/instance
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: driving-exam-frontend
+    environment:
+      VITE_API_BASE_URL: http://127.0.0.1:5000
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:
